@@ -8,15 +8,6 @@ import random
 from random import choice
 from random import shuffle
 
-
-### Definitions ###
-#edge: throughout the program (u,v) is treatred as the same as (v,u)
-#face: a face in a graph is of the form [(u1, u2), (u2, u3), (u3, u4), ... ,(u5, u6)]
-#Geodesic: a collection of edges of the form [(u1, v1), (u2, v2), (u3, v3), ...]. If the geodesic is a loop then the last edge will be the same as the first edge
-#Orrientation: 
-#connection: an assignment of an orrientiation to every face in the graph in the form {frozenset(face1): orrientation1, frozenset(face2): orrientation2, ...}
-
-
 ### several graphs of interest ###
 cube = {1:[2,3,5], 2:[1,4,6], 3:[1,4,7], 4:[3,2,8], 5:[6,7,1], 6:[5,8,2], 7:[5,8,3], 8:[7,6,4]}
 grid5x5 = {0:[1,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[3,9], 5:[0,6,10], 6:[1,5,7,11], 7:[6,8,2,12], 8:[7,9,3,13], 9:[4,8,14], 10:[5,11,15], 11:[10,12,6,16], 12:[11,13,7, 17], 13:[14,18,8,12], 14:[13,19,9], 15:[10,16,20], 16:[15,17,11,21], 17:[16,12,18,22], 18:[13,17, 23, 19], 19:[24,18,14], 20:[21,15], 21:[20,22,16], 22:[21,23,17], 23:[22,24, 18], 24:[23,19]}
