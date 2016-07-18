@@ -8,6 +8,15 @@ import random
 from random import choice
 from random import shuffle
 
+
+### Definitions ###
+#edge: throughout the program (u,v) is treatred as the same as (v,u)
+#face: a face in a graph is of the form [(u1, u2), (u2, u3), (u3, u4), ... ,(u5, u6)]
+#Geodesic: a collection of edges of the form [(u1, v1), (u2, v2), (u3, v3), ...]. If the geodesic is a loop then the last edge will be the same as the first edge
+#Orrientation: 
+#connection: an assignment of an orrientiation to every face in the graph in the form {frozenset(face1): orrientation1, frozenset(face2): orrientation2, ...}
+
+
 ### several graphs of interest ###
 cube = {1:[2,3,5], 2:[1,4,6], 3:[1,4,7], 4:[3,2,8], 5:[6,7,1], 6:[5,8,2], 7:[5,8,3], 8:[7,6,4]}
 grid5x5 = {0:[1,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[3,9], 5:[0,6,10], 6:[1,5,7,11], 7:[6,8,2,12], 8:[7,9,3,13], 9:[4,8,14], 10:[5,11,15], 11:[10,12,6,16], 12:[11,13,7, 17], 13:[14,18,8,12], 14:[13,19,9], 15:[10,16,20], 16:[15,17,11,21], 17:[16,12,18,22], 18:[13,17, 23, 19], 19:[24,18,14], 20:[21,15], 21:[20,22,16], 22:[21,23,17], 23:[22,24, 18], 24:[23,19]}
@@ -151,7 +160,7 @@ def quadrangulate_helper(graph, face):
 #input: graph and an optional outterface for the graph. If no outterface is sspecified then the maximal length face is used instead.
 #ouput: None
 #modifies: if the graph has cycles of length 2 or 3 then first we call make_bipartite on the graph. Then the method modifies graph by adding new vertices and edges such that all faces (except the outter_face) are of length 4 and distances between original vertices is preserved
-def quadrangulate(graph, outter_face = None):
+def quadrangulate(graph, outter_face = None, testing = True):
     faces = graph.faces()
     triangles = False
     odd_length = False
@@ -743,6 +752,9 @@ def uncross_geodesics_in_face(graph, face, geodesics, testing = True):
             a,b = edge
             if not (((a,b) in face) or ((b,a) in face)):
                 geodesic.remove(edge)
+        a,b = geodesic[0]
+        if ((geodesic[len(geodesic)-1] == (a,b)) or (geodesic[len(geodesic)-1] == (b,a))):
+            geodesic.remove((b,a)) #if the geodesic is a loop then the last edge will be the same as the first. So we will want to remove that edge.
     if testing:
         for geodesic in geodesics_through_face:
             assert len(geodesic) == 2, "there are not 2 edges left in the geodesic %s after removing edges not in the face" % geodesic
@@ -793,6 +805,8 @@ def uncross_random_subset_of_faces_in_graph(graph, connection, testing = True):
 
 ### functions for computing the embedding ###
 
+#input: a grpah and an integer k
+#output: a list of the connections on the graph that are a result of calling uncross_random_subset_of_faces_in_graph. 
 def embedding_connections(graph, k):
     connections = []
     connection = flat_connection(graph)
@@ -803,12 +817,16 @@ def embedding_connections(graph, k):
         connections.append(new_connection)
     return connections
 
-def embedding_cuts(graph, embeddings):
+#input: a graph and a list of different connections on the graph
+#output: a list of familys of cuts. One for each connection on the graph.
+def embedding_cuts(graph, connections):
     cuts = []
-    for embedding in embeddings:
-        cuts.append(get_cuts(graph, all_geodesics(graph, embedding)))
+    for connections in connections:
+        cuts.append(get_cuts(graph, all_geodesics(graph, connection)))
     return cuts
 
+#input:a graph and a list of family of cuts of the graph.
+#output: the distortion between the shortest path metric and then embedding metric.
 def embedding_distortion(graph, family_of_cuts):
     distances = {}
     k = len(family_of_cuts)
@@ -826,3 +844,14 @@ def embedding_distortion(graph, family_of_cuts):
         for v in vertices:
             distances[u][v] = float(distances[u][v])/k
     return distortion_of_metric(graph, distances, verbose = True)
+
+
+#input: a graph, an integer k, and an optional argument for drawing the graph k times each with a new connection.
+#output: the distortion of embedding the graph.
+def embedding(graph, k, drawing = False):
+    connections = embedding_connections(graph, k)
+    if drawing:
+        for connection in connections:
+            draw_graph(graph, connection)
+    family_of_cuts = embedding_cuts(graph, connections)
+    return embedding_distortion(graph, family_of_cuts)
